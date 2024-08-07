@@ -7,5 +7,7 @@
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true
-  }
+  },
+  "files": ["./hardhat.config.ts"],
+  "include": ["./test/", "./ignition"]
 }
