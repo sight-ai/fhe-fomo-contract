@@ -10,7 +10,7 @@ describe("FOMOFHE_Demo", function () {
     const publicClient = await hre.viem.getPublicClient();
 
     const oracle = await hre.viem.deployContract("Oracle", [], {});
-    const fomo_fhe_demo = await hre.viem.deployContract("FOMOFHE_Demo", [oracle.address], {});
+    const fomo_fhe_demo = await hre.viem.deployContract("FOMOFHE_Demo", [oracle.address, 0, 100000], {});
 
     return {
       oracle,
