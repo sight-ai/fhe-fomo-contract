@@ -34,20 +34,20 @@ contract FOMOFHE_Demo is Ownable2Step {
     uint64 _max;
     
     CapsulatedValue private _encrypted_target;
-    uint64 private _plaintext_target; // not revealed until game ends
-    uint64 private _sum;
+    uint64 private _plaintext_target; // not revealed until game ends, in micro-ether unit
+    uint64 private _sum; // in micro-ether unit
     address private _winner;
     
-    mapping(address => uint64) internal deposits;
+    mapping(address => uint64) internal deposits; // in micro-ether unit
     mapping(address => bool) internal users; // can only deposit once
     mapping(bytes32 => bytes) requestExtraData;
 
     struct GameStatus {
         bool isComplete;
         address winner;
-        uint64 myDeposit;
         uint64 target;
         State state;
+        uint64 sum;
     }
 
     constructor(address oracle_, uint64 min, uint64 max) payable {
@@ -218,14 +218,18 @@ contract FOMOFHE_Demo is Ownable2Step {
         require(msg.sender == address(oracle), "Only Oracle Can Do This");
         _;
     }
+    
+    function depositOf(address addr) public view returns (uint64) {
+        return deposits[addr];
+    }
 
     function getGameStatus() public view returns (GameStatus memory) {
         return GameStatus({
             isComplete: _state == State.Completed,
             winner: _winner,
-            myDeposit: deposits[msg.sender],
             target: _plaintext_target,
-            state: _state
+            state: _state,
+            sum: _sum
         });
     }
 
