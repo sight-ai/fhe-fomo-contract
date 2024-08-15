@@ -156,16 +156,13 @@ contract FOMOFHE_Demo is Ownable2Step {
     // only Oracle can call this
     function deposit_cb(bytes32 requestId, CapsulatedValue[] memory EVs) public onlyOracle {
         
-        
         if(_state != State.Launched) {
             return;
         }
         
-        
         bytes memory extraData = requestExtraData[requestId];
         (address requester, uint64 amount, uint64 sum) = abi.decode(extraData, (address, uint64, uint64));
         
-
         emit DepositConfirmed(requester, amount, sum);
         
         // Check winning condition
@@ -177,11 +174,12 @@ contract FOMOFHE_Demo is Ownable2Step {
             _winner = requester;
             _state = State.Completed;
             emit GameComplete(_winner, _sum);
+            revealTarget();
         }
     }
 
     // Reveal the target
-    function revealTarget() public {
+    function revealTarget() private {
         require(_state == State.Completed, "Game is not complete!");
         _state = State.Revealing;
         // Initialize new FHE computation request of 2 steps.
