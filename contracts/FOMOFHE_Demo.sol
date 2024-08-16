@@ -110,21 +110,26 @@ contract FOMOFHE_Demo is Ownable2Step {
         require(users[msg.sender] == false, "You have already deposited");
         
         uint64 amount = 0;
+        uint256 value;
         
         if (flag == 0) {
             amount = 1000; // This could represent 1000 microether (0.001 ETH)
+            value = 0.001 ether;
         } else if(flag == 1) {
             amount = 5000; // This could represent 5000 microether (0.005 ETH)
+            value = 0.005 ether;
         } else if(flag == 2){
             amount = 10000; // This could represent 10000 microether (0.01 ETH)
+            value = 0.01 ether;
         } else {
             revert("only flag 1 - small, 2 - medium, 3 - large allowed");
         }
 
         // Check if the sent value matches the required amount
-        require(msg.value == amount, "Incorrect payment amount.");
+        require(msg.value == value, "Incorrect payment amount.");
 
         users[msg.sender] = true;
+        deposits[msg.sender] = amount;
         _sum = _sum + amount;
         
         // Initialize new FHE computation request of 3 steps.
