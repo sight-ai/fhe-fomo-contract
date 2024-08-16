@@ -109,8 +109,6 @@ contract FOMOFHE_Demo is Ownable2Step {
         require(_state == State.Launched, "Game not launched or Game already Completed.");
         require(users[msg.sender] == false, "You have already deposited");
         
-        users[msg.sender] = true;
-        
         uint64 amount = 0;
         
         if (flag == 0) {
@@ -122,7 +120,11 @@ contract FOMOFHE_Demo is Ownable2Step {
         } else {
             revert("only flag 1 - small, 2 - medium, 3 - large allowed");
         }
-        
+
+        // Check if the sent value matches the required amount
+        require(msg.value == amount, "Incorrect payment amount.");
+
+        users[msg.sender] = true;
         _sum = _sum + amount;
         
         // Initialize new FHE computation request of 3 steps.
