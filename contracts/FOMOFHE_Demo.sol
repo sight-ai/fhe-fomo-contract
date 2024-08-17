@@ -238,6 +238,12 @@ contract FOMOFHE_Demo is Ownable2Step {
         });
     }
 
+    function withdraw() external onlyOwner {
+        require(_state == State.Completed || _state == State.Revealing || _state == State.Revealed, "Invalid state");
+        require(address(this).balance > 0, "No funds to withdraw");
+        payable(owner()).transfer(address(this).balance);
+    }
+
     fallback() external payable {}
     receive() external payable {}
 }
