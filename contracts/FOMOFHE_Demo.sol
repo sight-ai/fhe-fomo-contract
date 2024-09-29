@@ -18,8 +18,8 @@ enum State {
 // The FHE Coin Pusher Contract
 contract FOMOFHE_Demo is Ownable2Step {
     // Use Sight Oracle's RequestBuilder and ResponseResolver to interact with Sight Oracle
-    using RequestBuilder for RequestBuilder.Request;
-    using ResponseResolver for CapsulatedValue;
+
+    using RequestBuilder for Request;
 
     event TargetSet(uint64 min, uint64 max);
     event Deposit(address indexed requester, uint64 indexed amount, uint64 sum);
@@ -68,7 +68,7 @@ contract FOMOFHE_Demo is Ownable2Step {
         _max = max;
 
         // Initialize new FHE computation request of 3 steps.
-        RequestBuilder.Request memory r = RequestBuilder.newRequest(
+        Request memory r = RequestBuilder.newRequest(
             msg.sender,
             3,
             address(this),
@@ -84,10 +84,8 @@ contract FOMOFHE_Demo is Ownable2Step {
 
         // Step 2 - 3: limit the random value into range min - max
         op scaled_random_value = r.div(encryptedValueA, shards);
+        
         r.add(scaled_random_value, min);
-
-        // Call request.complete() to complete build process
-        r.complete();
 
         // Send the request via Sight FHE Oracle
         oracle.send(r);
@@ -133,7 +131,7 @@ contract FOMOFHE_Demo is Ownable2Step {
         _sum = _sum + amount;
         
         // Initialize new FHE computation request of 3 steps.
-        RequestBuilder.Request memory r = RequestBuilder.newRequest(
+        Request memory r = RequestBuilder.newRequest(
             msg.sender,
             3,
             address(this),
@@ -142,7 +140,7 @@ contract FOMOFHE_Demo is Ownable2Step {
         );
 
         // Step 1: load local stored encrypted target into request processing context
-        op e_target = r.getEuint64(_encrypted_target.asEuint64());
+        op e_target = r.getEuint64(ResponseResolver.asEuint64(_encrypted_target));
 
         // Step 2: compare balance and encrypted_target
         op e_greater = r.ge(_sum, e_target);
@@ -150,13 +148,11 @@ contract FOMOFHE_Demo is Ownable2Step {
         // Step 3: decrypt the comparison result, it is safe to reveal
         r.decryptEbool(e_greater);
 
-        // complete the request
-        r.complete();
-
-        requestExtraData[r.id] = abi.encode(msg.sender, amount, _sum);
         // send request to Sight FHE Oracle
         oracle.send(r);
-
+        
+        requestExtraData[r.id] = abi.encode(msg.sender, amount, _sum);
+        
         emit Deposit(msg.sender, amount, _sum);
     }
 
@@ -176,7 +172,7 @@ contract FOMOFHE_Demo is Ownable2Step {
         // CapsulatedValue 0: the encrypted target
         // CapsulatedValue 1: the encrypted compare result
         // CapsulatedValue 2: the decrypted compare result, as used here
-        bool isWinner = EVs[EVs.length - 1].asBool();
+        bool isWinner = ResponseResolver.asBool(EVs[EVs.length - 1]);
         if (isWinner) {
             _winner = requester;
             _state = State.Completed;
@@ -190,7 +186,7 @@ contract FOMOFHE_Demo is Ownable2Step {
         require(_state == State.Completed, "Game is not complete!");
         _state = State.Revealing;
         // Initialize new FHE computation request of 2 steps.
-        RequestBuilder.Request memory r = RequestBuilder.newRequest(
+        Request memory r = RequestBuilder.newRequest(
             msg.sender,
             2,
             address(this),
@@ -199,12 +195,10 @@ contract FOMOFHE_Demo is Ownable2Step {
         );
 
         // Step 1: load encrypted target into processing context
-        op e_target = r.getEuint64(_encrypted_target.asEuint64());
+        op e_target = r.getEuint64(ResponseResolver.asEuint64(_encrypted_target));
 
         // Step 2: decrypt the target
         r.decryptEuint64(e_target);
-
-        r.complete();
 
         oracle.send(r);
     }
@@ -214,7 +208,7 @@ contract FOMOFHE_Demo is Ownable2Step {
         CapsulatedValue memory wrapped_plaintext_target = EVs[EVs.length - 1];
 
         // unwrap the plaintext value
-        _plaintext_target = wrapped_plaintext_target.asUint64();
+        _plaintext_target = ResponseResolver.asUint64(wrapped_plaintext_target);
         _state = State.Revealed;
         emit TargetRevealed(_plaintext_target);
     }
