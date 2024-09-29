@@ -125,7 +125,7 @@ contract FOMOFHE_Demo is Ownable2Step {
 
         // Check if the sent value matches the required amount
         require(msg.value == value, "Incorrect payment amount.");
-
+        
         users[msg.sender] = true;
         deposits[msg.sender] = amount;
         _sum = _sum + amount;
@@ -140,6 +140,7 @@ contract FOMOFHE_Demo is Ownable2Step {
         );
 
         // Step 1: load local stored encrypted target into request processing context
+
         op e_target = r.getEuint64(ResponseResolver.asEuint64(_encrypted_target));
 
         // Step 2: compare balance and encrypted_target
@@ -172,7 +173,9 @@ contract FOMOFHE_Demo is Ownable2Step {
         // CapsulatedValue 0: the encrypted target
         // CapsulatedValue 1: the encrypted compare result
         // CapsulatedValue 2: the decrypted compare result, as used here
+
         bool isWinner = ResponseResolver.asBool(EVs[EVs.length - 1]);
+
         if (isWinner) {
             _winner = requester;
             _state = State.Completed;
@@ -195,6 +198,7 @@ contract FOMOFHE_Demo is Ownable2Step {
         );
 
         // Step 1: load encrypted target into processing context
+        
         op e_target = r.getEuint64(ResponseResolver.asEuint64(_encrypted_target));
 
         // Step 2: decrypt the target
@@ -208,7 +212,9 @@ contract FOMOFHE_Demo is Ownable2Step {
         CapsulatedValue memory wrapped_plaintext_target = EVs[EVs.length - 1];
 
         // unwrap the plaintext value
+
         _plaintext_target = ResponseResolver.asUint64(wrapped_plaintext_target);
+
         _state = State.Revealed;
         emit TargetRevealed(_plaintext_target);
     }
